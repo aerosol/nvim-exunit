@@ -1,4 +1,4 @@
-local RUNNING_ICONS = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" } -- Moon phase animation
+local RUNNING_ICONS = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" }
 local RUNNER_ID = "mix test"
 
 local running_index = 1
