@@ -93,19 +93,18 @@ function M.statusline()
 	end
 end
 
-M.run_last = function(id)
+function M.run_last(id)
 	if M.last[id] then
 		M.run(M.last[id])
 	else
-		print("No last command for " .. id)
+		vim.notify("No last command for " .. id, vim.log.levels.WARN)
 	end
 end
 
-M.run = function(args)
+function M.run(args)
 	args = args or {}
-	local current_file = vim.fn.expand("%:p")
-	local cmd = args.cmd or current_file
-	local id = args.id or current_file
+	local cmd = args.cmd
+	local id = args.id or cmd
 
 	local name = "Runner:" .. id
 	local bnr = vim.fn.bufnr(name)
@@ -116,16 +115,14 @@ M.run = function(args)
 				if vim.api.nvim_win_get_buf(win) == bnr then
 					vim.api.nvim_set_current_tabpage(tabnr)
 					vim.api.nvim_set_current_win(win)
-					vim.cmd("tabclose")
+					vim.api.nvim_command("tabclose")
 					break
 				end
 			end
 		end
-		vim.cmd("bdelete! " .. bnr)
+		vim.api.nvim_command("bdelete! " .. bnr)
 	end
-	vim.cmd("tabnew")
-
-	print(cmd)
+	vim.api.nvim_command("tabnew")
 
 	M.current_job = {
 		running = true,
@@ -133,14 +130,14 @@ M.run = function(args)
 		id = id,
 	}
 
-	local function on_exit(_, code, _)
+	local function on_exit(job_id, exit_code, event_type)
 		M.current_job.running = false
 		M.last_status = {
-			code = code,
+			code = exit_code,
 			cmd = cmd,
 			id = id,
 		}
-		if code == 0 then
+		if exit_code == 0 then
 			vim.notify("✅ " .. cmd, vim.log.levels.INFO)
 		else
 			vim.notify("❌ " .. cmd, vim.log.levels.ERROR)
@@ -148,10 +145,11 @@ M.run = function(args)
 	end
 
 	vim.notify(cmd, vim.log.levels.INFO)
-	vim.fn.jobstart(cmd, { term = true, on_exit = on_exit })
-	vim.cmd("file! " .. name)
+	local job_id = vim.fn.jobstart(cmd, { term = true, on_exit = on_exit })
+	M.current_job.job_id = job_id
+	vim.api.nvim_command("file! " .. name)
 
-	vim.cmd("tabprev")
+	vim.api.nvim_command("tabprev")
 
 	M.last[id] = args
 end
