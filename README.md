@@ -43,3 +43,9 @@ If you don't want default keymappings:
 ```
 
 See: https://github.com/aerosol/nvim-exunit/blob/65c6da303cf290d9ba7e2c6e75181575ceb5b4bd/lua/exunit/init.lua#L17-L22
+
+### Statusline integration
+
+```lua
+vim.o.statusline = "%{%v:lua.require'exunit'.statusline()%}"
+```
