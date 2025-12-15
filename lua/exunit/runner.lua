@@ -43,6 +43,7 @@ function M.run(args)
 	args = args or {}
 	local cmd = args.cmd
 	local id = args.id or cmd
+	local label = args.label or cmd
 
 	local name = "Runner:" .. id
 	ui.close_runner_buffer(name)
@@ -62,13 +63,13 @@ function M.run(args)
 			id = id,
 		}
 		if exit_code == 0 then
-			vim.notify("✅ " .. cmd, vim.log.levels.INFO)
+			vim.notify("✅ " .. label, vim.log.levels.INFO)
 		else
-			vim.notify("❌ " .. cmd, vim.log.levels.ERROR)
+			vim.notify("❌ " .. label, vim.log.levels.ERROR)
 		end
 	end
 
-	vim.notify(cmd, vim.log.levels.INFO)
+	vim.notify(label, vim.log.levels.INFO)
 	local job_id = vim.fn.jobstart(cmd, { term = true, on_exit = on_exit })
 	M.current_job.job_id = job_id
 

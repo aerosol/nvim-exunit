@@ -7,12 +7,12 @@ local M = {}
 function M.statusline(status)
 	if status.running then
 		running_index = running_index % #RUNNING_ICONS + 1
-		return "[Runner " .. RUNNING_ICONS[running_index] .. "]"
+		return "[ExUnit " .. RUNNING_ICONS[running_index] .. "]"
 	elseif status.exit_code ~= nil then
 		if status.exit_code == 0 then
-			return "[Runner ✅ ]"
+			return "[ExUnit ✅ ]"
 		else
-			return "[Runner ❌ exit:" .. status.exit_code .. "]"
+			return "[ExUnit ❌ exit:" .. status.exit_code .. "]"
 		end
 	else
 		return ""
