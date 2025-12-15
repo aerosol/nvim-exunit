@@ -281,4 +281,208 @@ test/nonexistent.exs:10
 			assert.equals("ExUnit Test Failures", title_captured)
 		end)
 	end)
+
+	describe("clear_signs", function()
+		it("should unplace all previously placed signs", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+			local unplaced_signs = {}
+
+			vim.fn = setmetatable({
+				sign_unplace = function(group, opts)
+					table.insert(unplaced_signs, { group = group, id = opts.id })
+				end,
+			}, { __index = old_fn })
+
+			table.insert(ui.placed_signs, 1)
+			table.insert(ui.placed_signs, 2)
+			table.insert(ui.placed_signs, 3)
+			ui.clear_signs()
+
+			vim.fn = old_fn
+
+			assert.equals(3, #unplaced_signs)
+			assert.equals("ExUnit", unplaced_signs[1].group)
+			assert.equals(1, unplaced_signs[1].id)
+		end)
+
+		it("should clear placed_signs list", function()
+			local ui = require("exunit.ui")
+			table.insert(ui.placed_signs, 1)
+			table.insert(ui.placed_signs, 2)
+			table.insert(ui.placed_signs, 3)
+
+			local old_fn = vim.fn
+			vim.fn = setmetatable({
+				sign_unplace = function() end,
+			}, { __index = old_fn })
+
+			ui.clear_signs()
+			vim.fn = old_fn
+		end)
+	end)
+
+	describe("place_signs", function()
+		it("should define ExUnitError sign", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+			local sign_defined = false
+			local sign_name = nil
+
+			vim.fn = setmetatable({
+				sign_define = function(name, opts)
+					sign_defined = true
+					sign_name = name
+				end,
+				getcwd = function()
+					return "/tmp"
+				end,
+				bufnr = function()
+					return -1
+				end,
+				bufadd = function()
+					return 1
+				end,
+				sign_place = function()
+					return 1
+				end,
+				sign_unplace = function() end,
+			}, { __index = old_fn })
+
+			ui.place_signs({ { file = "test/foo.exs", line = 5 } })
+			vim.fn = old_fn
+
+			assert.is_true(sign_defined)
+			assert.equals("ExUnitError", sign_name)
+		end)
+
+		it("should place signs for all locations", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+			local placed_signs = {}
+
+			vim.fn = setmetatable({
+				sign_define = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+				bufnr = function()
+					return 1
+				end,
+				bufadd = function()
+					return 1
+				end,
+				sign_place = function(id, group, name, bufnr, opts)
+					table.insert(placed_signs, {
+						group = group,
+						name = name,
+						bufnr = bufnr,
+						lnum = opts.lnum,
+					})
+					return #placed_signs
+				end,
+				sign_unplace = function() end,
+			}, { __index = old_fn })
+
+			local locations = {
+				{ file = "test/foo.exs", line = 5 },
+				{ file = "test/foo.exs", line = 10 },
+				{ file = "lib/bar.ex", line = 15 },
+			}
+			ui.place_signs(locations)
+			vim.fn = old_fn
+
+			assert.equals(3, #placed_signs)
+			assert.equals("ExUnit", placed_signs[1].group)
+			assert.equals("ExUnitError", placed_signs[1].name)
+			assert.equals(5, placed_signs[1].lnum)
+			assert.equals(10, placed_signs[2].lnum)
+			assert.equals(15, placed_signs[3].lnum)
+		end)
+
+		it("should clear previous signs before placing new ones", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+			local clear_called = false
+
+			vim.fn = setmetatable({
+				sign_define = function() end,
+				sign_unplace = function()
+					clear_called = true
+				end,
+				getcwd = function()
+					return "/tmp"
+				end,
+				bufnr = function()
+					return 1
+				end,
+				bufadd = function()
+					return 1
+				end,
+				sign_place = function()
+					return 1
+				end,
+			}, { __index = old_fn })
+
+			ui.place_signs({ { file = "test/foo.exs", line = 5 } })
+			vim.fn = old_fn
+
+			assert.is_true(clear_called)
+		end)
+
+		it("should handle empty locations", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+			local sign_placed = false
+
+			vim.fn = setmetatable({
+				sign_define = function() end,
+				sign_place = function()
+					sign_placed = true
+					return 1
+				end,
+				sign_unplace = function() end,
+			}, { __index = old_fn })
+
+			ui.place_signs({})
+			vim.fn = old_fn
+
+			assert.is_false(sign_placed)
+		end)
+
+		it("should track placed sign IDs", function()
+			local ui = require("exunit.ui")
+			local old_fn = vim.fn
+
+			vim.fn = setmetatable({
+				sign_define = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+				bufnr = function()
+					return 1
+				end,
+				bufadd = function()
+					return 1
+				end,
+				sign_place = function(id, group, name, bufnr, opts)
+					return #ui.placed_signs + 1
+				end,
+				sign_unplace = function() end,
+			}, { __index = old_fn })
+
+			for i = #ui.placed_signs, 1, -1 do
+				ui.placed_signs[i] = nil
+			end
+			ui.place_signs({
+				{ file = "test/foo.exs", line = 5 },
+				{ file = "test/bar.exs", line = 10 },
+			})
+			vim.fn = old_fn
+
+			assert.equals(2, #ui.placed_signs)
+			assert.equals(1, ui.placed_signs[1])
+			assert.equals(2, ui.placed_signs[2])
+		end)
+	end)
 end)

@@ -11,6 +11,11 @@ describe("runner", function()
 			close_runner_buffer = function() end,
 			open_runner_tab = function() end,
 			go_back_to_previous_tab = function() end,
+			notify_running = function() end,
+			notify_success = function() end,
+			notify_failure = function() end,
+			notify_warning = function() end,
+			place_signs = function() end,
 		}
 
 		package.preload["exunit.ui"] = function()
@@ -39,14 +44,12 @@ describe("runner", function()
 	describe("run_last", function()
 		it("should notify when no last command exists", function()
 			local notified = false
-			local original_notify = vim.notify
-			vim.notify = function(msg, level)
+			ui_mock.notify_warning = function(msg)
 				notified = true
 			end
 
 			runner.run_last("nonexistent")
 
-			vim.notify = original_notify
 			assert.is_true(notified)
 		end)
 	end)

@@ -42,7 +42,7 @@ function M.run_last(id)
 	if M.last[id] then
 		M.run(M.last[id])
 	else
-		vim.notify("No last command for " .. id, vim.log.levels.WARN)
+		ui.notify_warning("No last command for " .. id)
 	end
 end
 
@@ -74,6 +74,7 @@ function M.run(args)
 
 		local locations = parser.parse_locations(output)
 		parser.populate_loclist(locations)
+		ui.place_signs(locations)
 
 		M.last_status = {
 			code = exit_code,
@@ -83,13 +84,13 @@ function M.run(args)
 			locations = locations,
 		}
 		if exit_code == 0 then
-			vim.notify("✅ " .. label, vim.log.levels.INFO)
+			ui.notify_success(label)
 		else
-			vim.notify("❌ " .. label, vim.log.levels.ERROR)
+			ui.notify_failure(label)
 		end
 	end
 
-	vim.notify(label, vim.log.levels.INFO)
+	ui.notify_running(label)
 	local job_id = vim.fn.jobstart(cmd, { term = true, on_exit = on_exit })
 	M.current_job.job_id = job_id
 
