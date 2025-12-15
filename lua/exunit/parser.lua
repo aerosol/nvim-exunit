@@ -29,7 +29,7 @@ function M.parse_locations(output)
 	return locations
 end
 
-function M.populate_loclist(locations)
+function M.populate_loclist(locations, config)
 	if not locations or #locations == 0 then
 		vim.fn.setloclist(0, {})
 		return
@@ -47,6 +47,28 @@ function M.populate_loclist(locations)
 
 	vim.fn.setloclist(0, items, "r")
 	vim.fn.setloclist(0, {}, "a", { title = "ExUnit Test Failures" })
+
+	if config and config.location_list_mode and config.location_list_mode ~= "manual" then
+		local current_bufname = vim.api.nvim_buf_get_name(0)
+		local current_in_loclist = false
+		
+		for _, item in ipairs(items) do
+			local item_path = vim.fn.getcwd() .. "/" .. item.filename
+			if current_bufname == item_path then
+				current_in_loclist = true
+				break
+			end
+		end
+		
+		if not current_in_loclist then
+			if config.location_list_mode == "focus" then
+				vim.cmd("lopen")
+			elseif config.location_list_mode == "open_no_focus" then
+				vim.cmd("lopen")
+				vim.cmd("wincmd p")
+			end
+		end
+	end
 end
 
 return M

@@ -6,9 +6,11 @@ local keymaps = require("exunit.keymaps")
 
 local M = {}
 
+M.config = nil
+
 function M.setup(opts)
-	opts = config.setup(opts)
-	keymaps.setup_keymaps(commands, opts)
+	M.config = config.setup(opts)
+	keymaps.setup_keymaps(commands, M.config)
 end
 
 function M.test_all()

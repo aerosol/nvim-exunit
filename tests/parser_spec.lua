@@ -280,6 +280,158 @@ test/nonexistent.exs:10
 
 			assert.equals("ExUnit Test Failures", title_captured)
 		end)
+
+		it("should open and focus location list when location_list_mode is 'focus'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local old_api = vim.api
+			local lopen_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+			}, { __index = old_fn })
+
+			vim.api = setmetatable({
+				nvim_buf_get_name = function()
+					return "/tmp/other.ex"
+				end,
+			}, { __index = old_api })
+
+			vim.cmd = function(cmd)
+				if cmd == "lopen" then
+					lopen_called = true
+				end
+			end
+
+			local locations = {
+				{ file = "test/foo_test.exs", line = 5 },
+			}
+			local config = { location_list_mode = "focus" }
+			parser.populate_loclist(locations, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+			vim.api = old_api
+
+			assert.is_true(lopen_called)
+		end)
+
+		it("should open location list without focus when location_list_mode is 'open_no_focus'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local old_api = vim.api
+			local commands_called = {}
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+			}, { __index = old_fn })
+
+			vim.api = setmetatable({
+				nvim_buf_get_name = function()
+					return "/tmp/other.ex"
+				end,
+			}, { __index = old_api })
+
+			vim.cmd = function(cmd)
+				table.insert(commands_called, cmd)
+			end
+
+			local locations = {
+				{ file = "test/foo_test.exs", line = 5 },
+			}
+			local config = { location_list_mode = "open_no_focus" }
+			parser.populate_loclist(locations, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+			vim.api = old_api
+
+			assert.equals(2, #commands_called)
+			assert.equals("lopen", commands_called[1])
+			assert.equals("wincmd p", commands_called[2])
+		end)
+
+		it("should not open location list when location_list_mode is 'manual'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local old_api = vim.api
+			local lopen_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+			}, { __index = old_fn })
+
+			vim.api = setmetatable({
+				nvim_buf_get_name = function()
+					return "/tmp/other.ex"
+				end,
+			}, { __index = old_api })
+
+			vim.cmd = function(cmd)
+				if cmd == "lopen" then
+					lopen_called = true
+				end
+			end
+
+			local locations = {
+				{ file = "test/foo_test.exs", line = 5 },
+			}
+			local config = { location_list_mode = "manual" }
+			parser.populate_loclist(locations, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+			vim.api = old_api
+
+			assert.is_false(lopen_called)
+		end)
+
+		it("should not open location list when current buffer is in the list", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local old_api = vim.api
+			local lopen_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+				getcwd = function()
+					return "/tmp"
+				end,
+			}, { __index = old_fn })
+
+			vim.api = setmetatable({
+				nvim_buf_get_name = function()
+					return "/tmp/test/foo_test.exs"
+				end,
+			}, { __index = old_api })
+
+			vim.cmd = function(cmd)
+				if cmd == "lopen" then
+					lopen_called = true
+				end
+			end
+
+			local locations = {
+				{ file = "test/foo_test.exs", line = 5 },
+			}
+			local config = { location_list_mode = "focus" }
+			parser.populate_loclist(locations, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+			vim.api = old_api
+
+			assert.is_false(lopen_called)
+		end)
 	end)
 
 	describe("clear_signs", function()

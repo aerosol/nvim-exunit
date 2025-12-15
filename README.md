@@ -24,7 +24,14 @@ https://github.com/user-attachments/assets/e9c640d9-9971-4345-a2fa-9e4a10f99311
 	{
 		"aerosol/nvim-exunit",
 		config = function()
-			require("exunit").setup({})
+			require("exunit").setup({
+				own_keymaps = false,
+				-- opens location list, if current buffer isn't under test
+				-- available options: 
+				--  "focus" - automatically switch to location list window
+				--  "manual" - populates the list but doesn't invoke anything
+				location_list_mode = "open_no_focus" 			
+			})
 		end,
 	}
 ```

@@ -73,7 +73,8 @@ function M.run(args)
 		end
 
 		local locations = parser.parse_locations(output)
-		parser.populate_loclist(locations)
+		local exunit = require("exunit")
+		parser.populate_loclist(locations, exunit.config)
 		ui.place_signs(locations)
 
 		M.last_status = {
