@@ -9,17 +9,17 @@ function M.test_all()
 end
 
 function M.test_current()
-	local current_file = vim.fn.expand("%:p")
+	local current_file = vim.fn.expand("%:.")
 	runner.run({ id = RUNNER_ID, cmd = "mix test " .. current_file })
 end
 
 function M.test_current_trace()
-	local current_file = vim.fn.expand("%:p")
+	local current_file = vim.fn.expand("%:.")
 	runner.run({ id = RUNNER_ID, cmd = "mix test " .. current_file .. " --trace" })
 end
 
 function M.test_under_cursor()
-	local current_file = vim.fn.expand("%:p")
+	local current_file = vim.fn.expand("%:.")
 	local current_line = vim.fn.line(".")
 	local file_line = string.format("%s:%d", current_file, current_line)
 	runner.run({ id = RUNNER_ID, cmd = "mix test " .. file_line })
