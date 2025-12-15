@@ -32,6 +32,7 @@ describe("runner", function()
 			assert.is_nil(status.cmd)
 			assert.is_nil(status.id)
 			assert.is_nil(status.output)
+			assert.are.same({}, status.locations)
 		end)
 	end)
 

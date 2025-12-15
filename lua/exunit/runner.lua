@@ -1,4 +1,5 @@
 local ui = require("exunit.ui")
+local parser = require("exunit.parser")
 
 local M = {
 	last = {},
@@ -14,6 +15,7 @@ function M.status()
 			cmd = M.current_job.cmd,
 			id = M.current_job.id,
 			output = nil,
+			locations = {},
 		}
 	elseif M.last_status then
 		return {
@@ -22,6 +24,7 @@ function M.status()
 			cmd = M.last_status.cmd,
 			id = M.last_status.id,
 			output = M.last_status.output,
+			locations = M.last_status.locations or {},
 		}
 	else
 		return {
@@ -30,6 +33,7 @@ function M.status()
 			cmd = nil,
 			id = nil,
 			output = nil,
+			locations = {},
 		}
 	end
 end
@@ -71,11 +75,15 @@ function M.run(args)
 			output = table.concat(lines, "\n")
 		end
 
+		local locations = parser.parse_locations(output)
+		parser.populate_loclist(locations)
+
 		M.last_status = {
 			code = exit_code,
 			cmd = cmd,
 			id = id,
 			output = output,
+			locations = locations,
 		}
 		if exit_code == 0 then
 			vim.notify("✅ " .. label, vim.log.levels.INFO)
