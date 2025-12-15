@@ -13,6 +13,14 @@ function M.test_all()
 	})
 end
 
+function M.test_all_no_limit()
+	runner.run({
+		id = RUNNER_ID,
+		cmd = "mix test --warnings-as-errors",
+		label = "test all (no limit)",
+	})
+end
+
 function M.test_current()
 	local current_file = vim.fn.expand("%:.")
 	local label = vim.fn.expand("%:t")

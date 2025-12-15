@@ -23,7 +23,9 @@ https://github.com/user-attachments/assets/5bd90c63-647b-4cfb-ada0-9a2271b01170
 
 <kbd>tF</kbd> - test current module with `--trace`
 
-<kbd>ta</kbd> - test all
+<kbd>ta</kbd> - test all, but stop at first failure
+
+<kbd>tA</kbd> - test all, no failure limit
 
 <kbd>tl</kbd> - repeat last test run
 

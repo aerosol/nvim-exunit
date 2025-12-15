@@ -8,6 +8,7 @@ function M.setup_keymaps(commands, opts)
 	local keymap = vim.keymap.set
 	local test_mappings = {
 		ta = commands.test_all,
+		tA = commands.test_all_no_limit,
 		tf = commands.test_current,
 		tF = commands.test_current_trace,
 		tt = commands.test_under_cursor,
