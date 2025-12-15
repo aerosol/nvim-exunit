@@ -13,6 +13,7 @@ function M.status()
 			exit_code = nil,
 			cmd = M.current_job.cmd,
 			id = M.current_job.id,
+			output = nil,
 		}
 	elseif M.last_status then
 		return {
@@ -20,6 +21,7 @@ function M.status()
 			exit_code = M.last_status.code,
 			cmd = M.last_status.cmd,
 			id = M.last_status.id,
+			output = M.last_status.output,
 		}
 	else
 		return {
@@ -27,6 +29,7 @@ function M.status()
 			exit_code = nil,
 			cmd = nil,
 			id = nil,
+			output = nil,
 		}
 	end
 end
@@ -46,21 +49,33 @@ function M.run(args)
 	local label = args.label or cmd
 
 	local name = "Runner:" .. id
+	local buffer_name = name
 	ui.close_runner_buffer(name)
 	ui.open_runner_tab(name)
+
+	local bnr = vim.fn.bufnr(buffer_name)
 
 	M.current_job = {
 		running = true,
 		cmd = cmd,
 		id = id,
+		buffer = bnr,
 	}
 
 	local function on_exit(job_id, exit_code, event_type)
 		M.current_job.running = false
+
+		local output = ""
+		if bnr > 0 and vim.api.nvim_buf_is_valid(bnr) then
+			local lines = vim.api.nvim_buf_get_lines(bnr, 0, -1, false)
+			output = table.concat(lines, "\n")
+		end
+
 		M.last_status = {
 			code = exit_code,
 			cmd = cmd,
 			id = id,
+			output = output,
 		}
 		if exit_code == 0 then
 			vim.notify("✅ " .. label, vim.log.levels.INFO)
