@@ -13,7 +13,7 @@ Opinionated ExUnit test runner for NeoVim
 
 ### Demo
 
-https://github.com/user-attachments/assets/5bd90c63-647b-4cfb-ada0-9a2271b01170
+https://github.com/user-attachments/assets/beabc682-c060-4605-8374-b6cc1508a110
 
 ## Default keymaps
 
