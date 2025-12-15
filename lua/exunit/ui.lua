@@ -1,5 +1,4 @@
-local RUNNING_ICONS = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" }
-
+local RUNNING_ICONS = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
 local running_index = 1
 
 local M = {}
@@ -67,15 +66,15 @@ function M.switch_to_output_tab()
 		M.notify_warning("No test output available")
 		return false
 	end
-	
+
 	local name = "ExUnit:" .. status.id
 	local bnr = vim.fn.bufnr(name)
-	
+
 	if bnr <= 0 then
 		M.notify_warning("Test output tab not found")
 		return false
 	end
-	
+
 	for _, tabnr in ipairs(vim.api.nvim_list_tabpages()) do
 		local wins = vim.api.nvim_tabpage_list_wins(tabnr)
 		for _, win in ipairs(wins) do
@@ -86,7 +85,7 @@ function M.switch_to_output_tab()
 			end
 		end
 	end
-	
+
 	M.notify_warning("Test output tab not found")
 	return false
 end

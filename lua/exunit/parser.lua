@@ -9,7 +9,7 @@ function M.parse_locations(output)
 	local seen = {}
 
 	for line in output:gmatch("[^\r\n]+") do
-		local path, line_num = line:match("^%s*([%w_/.%-]+%.exs?):(%d+)")
+		local path, line_num = line:match("([%w_/.%-]+%.exs?):(%d+)")
 
 		if path and line_num then
 			local key = path .. ":" .. line_num

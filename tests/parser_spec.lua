@@ -154,6 +154,45 @@ test/plausible_web/controllers/stats_controller_test.exs:626
 			assert.is_true(#result >= 1)
 		end)
 
+		it("should handle stacktrace lines with project prefix", function()
+			local output = [[
+  1) test fails (DemoTest)
+     test/demo_test.exs:9
+     ** (RuntimeError) Stop
+     code: Demo.raise()
+     stacktrace:
+       (demo 0.1.0) lib/demo.ex:20: anonymous fn/1 in Demo.raise/0
+       (elixir 1.16.0) lib/enum.ex:4368: Enum.map_range/4
+       (elixir 1.16.0) lib/enum.ex:4368: Enum.map/2
+       test/demo_test.exs:10: (test)
+]]
+			local old_fn = vim.fn
+			vim.fn = setmetatable({
+				getcwd = function()
+					return "/tmp"
+				end,
+				filereadable = function(path)
+					if path:match("demo") then
+						return 1
+					end
+					return 0
+				end,
+			}, { __index = old_fn })
+
+			local result = parser.parse_locations(output)
+			vim.fn = old_fn
+
+			local has_demo_ex = false
+			for _, loc in ipairs(result) do
+				if loc.file == "lib/demo.ex" and loc.line == 20 then
+					has_demo_ex = true
+					break
+				end
+			end
+
+			assert.is_true(has_demo_ex)
+		end)
+
 		it("should only include files that exist", function()
 			local output = [[
 test/existing.exs:5
