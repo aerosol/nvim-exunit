@@ -9,6 +9,10 @@ Opinionated ExUnit test runner for NeoVim
 - Places signs on stacktrace items
 - Displays statusline progress + notifications
 
+### Demo
+
+https://github.com/user-attachments/assets/5bd90c63-647b-4cfb-ada0-9a2271b01170
+
 ## Default keymaps
 
 <kbd>tt</kbd> - test under cursor
