@@ -33,6 +33,10 @@ function M.test_last()
 	commands.test_last()
 end
 
+function M.goto_output()
+	commands.goto_output()
+end
+
 function M.status()
 	return runner.status()
 end

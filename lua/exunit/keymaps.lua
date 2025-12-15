@@ -12,6 +12,7 @@ function M.setup_keymaps(commands, opts)
 		tF = commands.test_current_trace,
 		tt = commands.test_under_cursor,
 		tl = commands.test_last,
+		gto = commands.goto_output,
 	}
 	for lhs, fn in pairs(test_mappings) do
 		keymap("n", lhs, fn, {})

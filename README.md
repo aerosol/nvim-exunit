@@ -18,6 +18,8 @@ https://github.com/user-attachments/assets/e9c640d9-9971-4345-a2fa-9e4a10f99311
 
 <kbd>tl</kbd> - repeat last test run
 
+<kbd>gto</kbd> - go to test output tab
+
 ## Install
 
 ```lua

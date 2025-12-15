@@ -1,4 +1,5 @@
 local runner = require("exunit.runner")
+local ui = require("exunit.ui")
 
 local RUNNER_ID = "mix test"
 
@@ -46,6 +47,10 @@ end
 
 function M.test_last()
 	runner.run_last(RUNNER_ID)
+end
+
+function M.goto_output()
+	ui.switch_to_output_tab()
 end
 
 return M
