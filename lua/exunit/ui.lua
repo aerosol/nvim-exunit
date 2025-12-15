@@ -37,9 +37,8 @@ function M.close_runner_buffer(name)
 	end
 end
 
-function M.open_runner_tab(name)
+function M.open_runner_tab()
 	vim.api.nvim_command("tabnew")
-	vim.api.nvim_command("file! " .. name)
 end
 
 function M.go_back_to_previous_tab()

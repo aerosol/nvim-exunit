@@ -52,24 +52,21 @@ function M.run(args)
 	local id = args.id or cmd
 	local label = args.label or cmd
 
-	local name = "Runner:" .. id
-	local buffer_name = name
+	local name = "ExUnit:" .. id
 	ui.close_runner_buffer(name)
-	ui.open_runner_tab(name)
-
-	local bnr = vim.fn.bufnr(buffer_name)
+	ui.open_runner_tab()
 
 	M.current_job = {
 		running = true,
 		cmd = cmd,
 		id = id,
-		buffer = bnr,
 	}
 
 	local function on_exit(job_id, exit_code, event_type)
 		M.current_job.running = false
 
 		local output = ""
+		local bnr = vim.fn.bufnr(name)
 		if bnr > 0 and vim.api.nvim_buf_is_valid(bnr) then
 			local lines = vim.api.nvim_buf_get_lines(bnr, 0, -1, false)
 			output = table.concat(lines, "\n")
@@ -95,6 +92,8 @@ function M.run(args)
 	vim.notify(label, vim.log.levels.INFO)
 	local job_id = vim.fn.jobstart(cmd, { term = true, on_exit = on_exit })
 	M.current_job.job_id = job_id
+
+	vim.api.nvim_command("file! " .. name)
 
 	ui.go_back_to_previous_tab()
 
