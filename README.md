@@ -5,7 +5,9 @@ Opinionated ExUnit test runner for NeoVim
 ## Features
 
 - Quick keymaps to run tests at cursor, module, project and jump to output
-- Populates location list and automatically opens it on failure, unless the current buffer is on the list already
+- Populates location list
+  - automatically opens it on failure, unless the current buffer is on the list already
+  - automatically closes it on success
 - Places signs on stacktrace items
 - Displays statusline progress + notifications
 
