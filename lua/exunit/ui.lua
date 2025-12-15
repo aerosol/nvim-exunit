@@ -92,8 +92,31 @@ end
 
 local sign_group = "ExUnit"
 local placed_signs = {}
+local pending_signs = {}
 
 M.placed_signs = placed_signs
+
+local sign_augroup = vim.api.nvim_create_augroup("ExUnitSigns", { clear = true })
+
+vim.api.nvim_create_autocmd("BufReadPost", {
+	group = sign_augroup,
+	callback = function(args)
+		local bufnr = args.buf
+		local pending = pending_signs[bufnr]
+		if pending then
+			for _, loc in ipairs(pending) do
+				local sign_id = vim.fn.sign_place(0, sign_group, "ExUnitError", bufnr, {
+					lnum = loc.line,
+					priority = 10,
+				})
+				if sign_id > 0 then
+					table.insert(placed_signs, sign_id)
+				end
+			end
+			pending_signs[bufnr] = nil
+		end
+	end,
+})
 
 function M.clear_signs()
 	for _, sign_id in ipairs(placed_signs) do
@@ -102,6 +125,7 @@ function M.clear_signs()
 	for i = #placed_signs, 1, -1 do
 		placed_signs[i] = nil
 	end
+	pending_signs = {}
 end
 
 function M.place_signs(locations)
@@ -126,12 +150,19 @@ function M.place_signs(locations)
 		end
 
 		if bufnr > 0 then
-			local sign_id = vim.fn.sign_place(0, sign_group, "ExUnitError", bufnr, {
-				lnum = loc.line,
-				priority = 10,
-			})
-			if sign_id > 0 then
-				table.insert(placed_signs, sign_id)
+			if vim.api.nvim_buf_is_loaded(bufnr) then
+				local sign_id = vim.fn.sign_place(0, sign_group, "ExUnitError", bufnr, {
+					lnum = loc.line,
+					priority = 10,
+				})
+				if sign_id > 0 then
+					table.insert(placed_signs, sign_id)
+				end
+			else
+				if not pending_signs[bufnr] then
+					pending_signs[bufnr] = {}
+				end
+				table.insert(pending_signs[bufnr], loc)
 			end
 		end
 	end
