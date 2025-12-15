@@ -32,6 +32,9 @@ end
 function M.populate_loclist(locations, config)
 	if not locations or #locations == 0 then
 		vim.fn.setloclist(0, {})
+		if config and config.location_list_mode and config.location_list_mode ~= "manual" then
+			vim.cmd("lclose")
+		end
 		return
 	end
 

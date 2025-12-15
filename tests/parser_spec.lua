@@ -432,6 +432,78 @@ test/nonexistent.exs:10
 
 			assert.is_false(lopen_called)
 		end)
+
+		it("should close location list when no failures and mode is 'focus'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local lclose_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+			}, { __index = old_fn })
+
+			vim.cmd = function(cmd)
+				if cmd == "lclose" then
+					lclose_called = true
+				end
+			end
+
+			local config = { location_list_mode = "focus" }
+			parser.populate_loclist({}, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+
+			assert.is_true(lclose_called)
+		end)
+
+		it("should close location list when no failures and mode is 'open_no_focus'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local lclose_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+			}, { __index = old_fn })
+
+			vim.cmd = function(cmd)
+				if cmd == "lclose" then
+					lclose_called = true
+				end
+			end
+
+			local config = { location_list_mode = "open_no_focus" }
+			parser.populate_loclist({}, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+
+			assert.is_true(lclose_called)
+		end)
+
+		it("should not close location list when no failures and mode is 'manual'", function()
+			local old_fn = vim.fn
+			local old_cmd = vim.cmd
+			local lclose_called = false
+
+			vim.fn = setmetatable({
+				setloclist = function() end,
+			}, { __index = old_fn })
+
+			vim.cmd = function(cmd)
+				if cmd == "lclose" then
+					lclose_called = true
+				end
+			end
+
+			local config = { location_list_mode = "manual" }
+			parser.populate_loclist({}, config)
+
+			vim.fn = old_fn
+			vim.cmd = old_cmd
+
+			assert.is_false(lclose_called)
+		end)
 	end)
 
 	describe("clear_signs", function()
