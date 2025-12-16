@@ -36,37 +36,28 @@ https://github.com/user-attachments/assets/beabc682-c060-4605-8374-b6cc1508a110
 ```lua
 	{
 		"aerosol/nvim-exunit",
-		config = function()
-			require("exunit").setup({
-				own_keymaps = false,
-				-- opens location list, if current buffer isn't under test
-				-- available options: 
-				--  "focus" - automatically switch to location list window
-				--  "manual" - populates the list but doesn't invoke anything
-				location_list_mode = "open_no_focus",
-				-- customize icons
-				running_icons = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" },
-				success_icon = "✅",
-				failure_icon = "❌",
-			})
-		end,
+		config = true
 	}
 ```
 
-If you don't want default keymappings:
+Setup options:
 
 ```lua
-	{
-		"aerosol/nvim-exunit",
-		config = function()
-			require("exunit").setup({own_keymaps = true})
-      -- ...
-		end,
-	},
-
+{
+	-- https://github.com/aerosol/nvim-exunit/blob/main/lua/exunit/keymaps.lua
+	own_keymaps = false,
+	-- opens location list, if current buffer isn't under test
+	-- available options: 
+	--  "focus" - automatically switch to location list window
+	--  "manual" - populates the list but doesn't invoke anything
+	location_list_mode = "open_no_focus",
+	-- customize icons
+	running_icons = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" },
+	success_icon = "✅",
+	failure_icon = "❌",
+}
+end
 ```
-
-See: https://github.com/aerosol/nvim-exunit/blob/main/lua/exunit/keymaps.lua
 
 ### Statusline integration
 
