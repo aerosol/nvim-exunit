@@ -56,7 +56,6 @@ Setup options:
 	success_icon = "✅",
 	failure_icon = "❌",
 }
-end
 ```
 
 ### Statusline integration
