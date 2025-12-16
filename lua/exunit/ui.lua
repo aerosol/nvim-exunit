@@ -1,9 +1,15 @@
+local buffers = require("exunit.buffers")
+
 local running_index = 1
 
 local M = {}
 
+local function get_config()
+	return require("exunit").config or require("exunit.config").defaults
+end
+
 function M.statusline(status, config)
-	config = config or require("exunit.config").defaults
+	config = config or get_config()
 	local running_icons = config.running_icons
 	local failure_icon = config.failure_icon
 	local success_icon = config.success_icon
@@ -21,23 +27,7 @@ function M.statusline(status, config)
 	end
 end
 
-function M.close_runner_buffer(name)
-	local bnr = vim.fn.bufnr(name)
-	if bnr > 0 then
-		for _, tabnr in ipairs(vim.api.nvim_list_tabpages()) do
-			local wins = vim.api.nvim_tabpage_list_wins(tabnr)
-			for _, win in ipairs(wins) do
-				if vim.api.nvim_win_get_buf(win) == bnr then
-					vim.api.nvim_set_current_tabpage(tabnr)
-					vim.api.nvim_set_current_win(win)
-					vim.api.nvim_command("tabclose")
-					break
-				end
-			end
-		end
-		vim.api.nvim_command("bdelete! " .. bnr)
-	end
-end
+M.close_runner_buffer = buffers.close_buffer_and_tab
 
 function M.open_runner_tab()
 	vim.api.nvim_command("tabnew")
@@ -52,12 +42,12 @@ function M.notify_running(label)
 end
 
 function M.notify_success(label, config)
-	config = config or require("exunit.config").defaults
+	config = config or get_config()
 	vim.notify(config.success_icon .. " " .. label, vim.log.levels.INFO)
 end
 
 function M.notify_failure(label, config)
-	config = config or require("exunit.config").defaults
+	config = config or get_config()
 	vim.notify(config.failure_icon .. " " .. label, vim.log.levels.ERROR)
 end
 
@@ -80,15 +70,8 @@ function M.switch_to_output_tab()
 		return false
 	end
 
-	for _, tabnr in ipairs(vim.api.nvim_list_tabpages()) do
-		local wins = vim.api.nvim_tabpage_list_wins(tabnr)
-		for _, win in ipairs(wins) do
-			if vim.api.nvim_win_get_buf(win) == bnr then
-				vim.api.nvim_set_current_tabpage(tabnr)
-				vim.api.nvim_set_current_win(win)
-				return true
-			end
-		end
+	if buffers.switch_to_buffer_tab(bnr) then
+		return true
 	end
 
 	M.notify_warning("Test output tab not found")
@@ -134,7 +117,7 @@ function M.clear_signs()
 end
 
 function M.place_signs(locations, config)
-	config = config or require("exunit.config").defaults
+	config = config or get_config()
 	M.clear_signs()
 
 	if not locations or #locations == 0 then
@@ -147,8 +130,9 @@ function M.place_signs(locations, config)
 		numhl = "DiagnosticError",
 	})
 
+	local paths = require("exunit.paths")
 	for _, loc in ipairs(locations) do
-		local full_path = vim.fn.getcwd() .. "/" .. loc.file
+		local full_path = paths.get_full_path(loc.file)
 		local bufnr = vim.fn.bufnr(full_path)
 
 		if bufnr == -1 then

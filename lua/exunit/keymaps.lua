@@ -5,18 +5,18 @@ function M.setup_keymaps(commands, opts)
 		return
 	end
 
-	local keymap = vim.keymap.set
 	local test_mappings = {
-		ta = commands.test_all,
-		tA = commands.test_all_no_limit,
-		tf = commands.test_current,
-		tF = commands.test_current_trace,
-		tt = commands.test_under_cursor,
-		tl = commands.test_last,
-		gto = commands.goto_output,
+		{ "n", "ta", commands.test_all, "ExUnit: Test all" },
+		{ "n", "tA", commands.test_all_no_limit, "ExUnit: Test all (no limit)" },
+		{ "n", "tf", commands.test_current, "ExUnit: Test current file" },
+		{ "n", "tF", commands.test_current_trace, "ExUnit: Test current file with trace" },
+		{ "n", "tt", commands.test_under_cursor, "ExUnit: Test under cursor" },
+		{ "n", "tl", commands.test_last, "ExUnit: Test last" },
+		{ "n", "gto", commands.goto_output, "ExUnit: Go to output" },
 	}
-	for lhs, fn in pairs(test_mappings) do
-		keymap("n", lhs, fn, {})
+
+	for _, mapping in ipairs(test_mappings) do
+		vim.keymap.set(mapping[1], mapping[2], mapping[3], { desc = mapping[4] })
 	end
 end
 

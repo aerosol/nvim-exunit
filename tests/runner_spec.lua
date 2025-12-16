@@ -39,6 +39,80 @@ describe("runner", function()
 			assert.is_nil(status.output)
 			assert.are.same({}, status.locations)
 		end)
+
+		it("should clear previous failed status when new test starts", function()
+			local old_api = vim.api
+			local old_fn = vim.fn
+
+			vim.api = setmetatable({
+				nvim_command = function() end,
+			}, { __index = old_api })
+
+			vim.fn = setmetatable({
+				jobstart = function()
+					return 1
+				end,
+			}, { __index = old_fn })
+
+			vim.notify = function() end
+
+			runner.last_status = {
+				code = 1,
+				cmd = "mix test",
+				id = "test",
+				output = "test output",
+				locations = {},
+			}
+
+			runner.run({ cmd = "mix test", id = "test" })
+
+			vim.api = old_api
+			vim.fn = old_fn
+
+			local status = runner.status()
+			assert.is_true(status.running)
+			assert.is_nil(status.exit_code)
+		end)
+
+		it("should ignore on_exit callback from old job when new job is running", function()
+			local old_api = vim.api
+			local old_fn = vim.fn
+			local on_exit_callbacks = {}
+
+			vim.api = setmetatable({
+				nvim_command = function() end,
+				nvim_buf_is_valid = function()
+					return false
+				end,
+			}, { __index = old_api })
+
+			vim.fn = setmetatable({
+				jobstart = function(cmd, opts)
+					table.insert(on_exit_callbacks, opts.on_exit)
+					return #on_exit_callbacks
+				end,
+				bufnr = function()
+					return -1
+				end,
+			}, { __index = old_fn })
+
+			vim.notify = function() end
+
+			runner.run({ cmd = "mix test 1", id = "test1" })
+			local old_job_exit = on_exit_callbacks[1]
+
+			runner.run({ cmd = "mix test 2", id = "test2" })
+
+			old_job_exit(1, 1, "exit")
+
+			local status = runner.status()
+			assert.is_true(status.running)
+			assert.equals("mix test 2", status.cmd)
+			assert.is_nil(runner.last_status)
+
+			vim.api = old_api
+			vim.fn = old_fn
+		end)
 	end)
 
 	describe("run_last", function()

@@ -256,6 +256,8 @@ test/nonexistent.exs:10
 
 		it("should populate location list with single location", function()
 			local old_fn = vim.fn
+			local old_api = vim.api
+			local old_cmd = vim.cmd
 			local items_captured = nil
 			vim.fn = setmetatable({
 				setloclist = function(nr, items, action, opts)
@@ -263,13 +265,29 @@ test/nonexistent.exs:10
 						items_captured = items
 					end
 				end,
+				getcwd = function()
+					return "/tmp"
+				end,
 			}, { __index = old_fn })
+
+			vim.api = setmetatable({
+				nvim_buf_get_name = function()
+					return "/tmp/other.ex"
+				end,
+				nvim_list_wins = function()
+					return {}
+				end,
+			}, { __index = old_api })
+
+			vim.cmd = function(cmd) end
 
 			local locations = {
 				{ file = "test/foo_test.exs", line = 5 },
 			}
-			parser.populate_loclist(locations)
+			parser.populate_loclist(locations, { location_list_mode = "manual" })
 			vim.fn = old_fn
+			vim.api = old_api
+			vim.cmd = old_cmd
 
 			assert.is_not_nil(items_captured)
 			assert.equals(1, #items_captured)
@@ -278,47 +296,83 @@ test/nonexistent.exs:10
 			assert.equals(1, items_captured[1].col)
 		end)
 
-		it("should populate location list with multiple locations", function()
-			local old_fn = vim.fn
-			local items_captured = nil
-			vim.fn = setmetatable({
-				setloclist = function(nr, items, action, opts)
-					if action == "r" then
-						items_captured = items
-					end
-				end,
-			}, { __index = old_fn })
+	it("should populate location list with multiple locations", function()
+		local old_fn = vim.fn
+		local old_api = vim.api
+		local old_cmd = vim.cmd
+		local items_captured = nil
+		vim.fn = setmetatable({
+			setloclist = function(nr, items, action, opts)
+				if action == "r" then
+					items_captured = items
+				end
+			end,
+			getcwd = function()
+				return "/tmp"
+			end,
+		}, { __index = old_fn })
 
-			local locations = {
-				{ file = "test/foo_test.exs", line = 5 },
-				{ file = "lib/foo.ex", line = 11 },
-			}
-			parser.populate_loclist(locations)
-			vim.fn = old_fn
+		vim.api = setmetatable({
+			nvim_buf_get_name = function()
+				return "/tmp/other.ex"
+			end,
+			nvim_list_wins = function()
+				return {}
+			end,
+		}, { __index = old_api })
 
-			assert.is_not_nil(items_captured)
-			assert.equals(2, #items_captured)
-		end)
+		vim.cmd = function() end
 
-		it("should set location list title", function()
-			local old_fn = vim.fn
-			local title_captured = nil
-			vim.fn = setmetatable({
-				setloclist = function(nr, items, action, opts)
-					if opts and opts.title then
-						title_captured = opts.title
-					end
-				end,
-			}, { __index = old_fn })
+		local locations = {
+			{ file = "test/foo_test.exs", line = 5 },
+			{ file = "lib/foo.ex", line = 11 },
+		}
+		parser.populate_loclist(locations)
+		vim.fn = old_fn
+		vim.api = old_api
+		vim.cmd = old_cmd
 
-			local locations = {
-				{ file = "test/foo_test.exs", line = 5 },
-			}
-			parser.populate_loclist(locations)
-			vim.fn = old_fn
+		assert.is_not_nil(items_captured)
+		assert.equals(2, #items_captured)
+	end)
 
-			assert.equals("ExUnit Test Failures", title_captured)
-		end)
+	it("should set location list title", function()
+		local old_fn = vim.fn
+		local old_api = vim.api
+		local old_cmd = vim.cmd
+		local title_captured = nil
+		vim.fn = setmetatable({
+			setloclist = function(nr, items, action, opts)
+				if opts and opts.title then
+					title_captured = opts.title
+				end
+			end,
+			getcwd = function()
+				return "/tmp"
+			end,
+		}, { __index = old_fn })
+
+		vim.api = setmetatable({
+			nvim_buf_get_name = function()
+				return "/tmp/other.ex"
+			end,
+			nvim_list_wins = function()
+				return {}
+			end,
+		}, { __index = old_api })
+
+		vim.cmd = function() end
+
+		local locations = {
+			{ file = "test/foo_test.exs", line = 5 },
+		}
+		parser.populate_loclist(locations)
+		vim.fn = old_fn
+		vim.api = old_api
+		vim.cmd = old_cmd
+
+		assert.equals("ExUnit Test Failures", title_captured)
+	end)
 
 		it("should open and focus location list when location_list_mode is 'focus'", function()
 			local old_fn = vim.fn
@@ -336,6 +390,9 @@ test/nonexistent.exs:10
 			vim.api = setmetatable({
 				nvim_buf_get_name = function()
 					return "/tmp/other.ex"
+				end,
+				nvim_list_wins = function()
+					return {}
 				end,
 			}, { __index = old_api })
 
@@ -374,6 +431,9 @@ test/nonexistent.exs:10
 			vim.api = setmetatable({
 				nvim_buf_get_name = function()
 					return "/tmp/other.ex"
+				end,
+				nvim_list_wins = function()
+					return {}
 				end,
 			}, { __index = old_api })
 
@@ -450,6 +510,9 @@ test/nonexistent.exs:10
 			vim.api = setmetatable({
 				nvim_buf_get_name = function()
 					return "/tmp/test/foo_test.exs"
+				end,
+				nvim_list_wins = function()
+					return {}
 				end,
 			}, { __index = old_api })
 

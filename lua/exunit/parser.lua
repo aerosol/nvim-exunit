@@ -1,3 +1,5 @@
+local paths = require("exunit.paths")
+
 local M = {}
 
 function M.parse_locations(output)
@@ -11,11 +13,11 @@ function M.parse_locations(output)
 	for line in output:gmatch("[^\r\n]+") do
 		local path, line_num = line:match("([%w_/.%-]+%.exs?):(%d+)")
 
-		if path and line_num then
+		if path and line_num and paths.is_elixir_test_file(path) then
 			local key = path .. ":" .. line_num
 			if not seen[key] then
-				local full_path = vim.fn.getcwd() .. "/" .. path
-				if vim.fn.filereadable(full_path) == 1 then
+				local full_path = paths.get_full_path(path)
+				if paths.is_file_readable(full_path) then
 					table.insert(locations, {
 						file = path,
 						line = tonumber(line_num),
@@ -29,10 +31,55 @@ function M.parse_locations(output)
 	return locations
 end
 
+local function is_loclist_open()
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		local ok, ft = pcall(function() return vim.bo[buf].filetype end)
+		if ok and ft == "qf" then
+			local ok_loclist, loclist = pcall(vim.fn.getloclist, vim.fn.win_getid(win))
+			if ok_loclist and loclist ~= {} then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function should_open_loclist(config, items)
+	if config.location_list_mode == "manual" then
+		return false
+	end
+
+	if is_loclist_open() then
+		return false
+	end
+
+	local current_bufname = vim.api.nvim_buf_get_name(0)
+	for _, item in ipairs(items) do
+		local item_path = paths.get_full_path(item.filename)
+		if current_bufname == item_path then
+			return false
+		end
+	end
+
+	return true
+end
+
+local function open_loclist(config)
+	if config.location_list_mode == "focus" then
+		vim.cmd("lopen")
+	elseif config.location_list_mode == "open_no_focus" then
+		vim.cmd("lopen")
+		vim.cmd("wincmd p")
+	end
+end
+
 function M.populate_loclist(locations, config)
+	config = config or require("exunit.config").defaults
+
 	if not locations or #locations == 0 then
 		vim.fn.setloclist(0, {})
-		if config and config.location_list_mode and config.location_list_mode ~= "manual" then
+		if config.location_list_mode ~= "manual" then
 			vim.cmd("lclose")
 		end
 		return
@@ -51,37 +98,8 @@ function M.populate_loclist(locations, config)
 	vim.fn.setloclist(0, items, "r")
 	vim.fn.setloclist(0, {}, "a", { title = "ExUnit Test Failures" })
 
-	if config and config.location_list_mode and config.location_list_mode ~= "manual" then
-		local loclist_already_open = false
-		for _, win in ipairs(vim.api.nvim_list_wins()) do
-			local buf = vim.api.nvim_win_get_buf(win)
-			if vim.bo[buf].filetype == "qf" and vim.fn.getloclist(vim.fn.win_getid(win)) ~= {} then
-				loclist_already_open = true
-				break
-			end
-		end
-		
-		if not loclist_already_open then
-			local current_bufname = vim.api.nvim_buf_get_name(0)
-			local current_in_loclist = false
-			
-			for _, item in ipairs(items) do
-				local item_path = vim.fn.getcwd() .. "/" .. item.filename
-				if current_bufname == item_path then
-					current_in_loclist = true
-					break
-				end
-			end
-			
-			if not current_in_loclist then
-				if config.location_list_mode == "focus" then
-					vim.cmd("lopen")
-				elseif config.location_list_mode == "open_no_focus" then
-					vim.cmd("lopen")
-					vim.cmd("wincmd p")
-				end
-			end
-		end
+	if should_open_loclist(config, items) then
+		open_loclist(config)
 	end
 end
 

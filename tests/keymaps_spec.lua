@@ -37,16 +37,18 @@ describe("keymaps", function()
 
 			local commands = {
 				test_all = function() end,
+				test_all_no_limit = function() end,
 				test_current = function() end,
 				test_current_trace = function() end,
 				test_under_cursor = function() end,
 				test_last = function() end,
+				goto_output = function() end,
 			}
 
 			keymaps.setup_keymaps(commands, { own_keymaps = false })
 
 			vim.keymap.set = original_keymap_set
-			assert.equals(5, keymap_count)
+			assert.equals(7, keymap_count)
 		end)
 	end)
 end)

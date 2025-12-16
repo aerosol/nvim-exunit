@@ -1,5 +1,8 @@
 local ui = require("exunit.ui")
 local parser = require("exunit.parser")
+local status_builder = require("exunit.status")
+
+local exunit
 
 local M = {
 	last = {},
@@ -9,32 +12,11 @@ local M = {
 
 function M.status()
 	if M.current_job and M.current_job.running then
-		return {
-			running = true,
-			exit_code = nil,
-			cmd = M.current_job.cmd,
-			id = M.current_job.id,
-			output = nil,
-			locations = {},
-		}
+		return status_builder.create_running_status(M.current_job)
 	elseif M.last_status then
-		return {
-			running = false,
-			exit_code = M.last_status.code,
-			cmd = M.last_status.cmd,
-			id = M.last_status.id,
-			output = M.last_status.output,
-			locations = M.last_status.locations or {},
-		}
+		return status_builder.create_completed_status(M.last_status)
 	else
-		return {
-			running = false,
-			exit_code = nil,
-			cmd = nil,
-			id = nil,
-			output = nil,
-			locations = {},
-		}
+		return status_builder.create_empty_status()
 	end
 end
 
@@ -56,6 +38,7 @@ function M.run(args)
 	ui.close_runner_buffer(name)
 	ui.open_runner_tab()
 
+	M.last_status = nil
 	M.current_job = {
 		running = true,
 		cmd = cmd,
@@ -63,31 +46,33 @@ function M.run(args)
 	}
 
 	local function on_exit(job_id, exit_code, event_type)
-		M.current_job.running = false
+		if M.current_job and M.current_job.job_id == job_id then
+			M.current_job.running = false
 
-		local output = ""
-		local bnr = vim.fn.bufnr(name)
-		if bnr > 0 and vim.api.nvim_buf_is_valid(bnr) then
-			local lines = vim.api.nvim_buf_get_lines(bnr, 0, -1, false)
-			output = table.concat(lines, "\n")
-		end
+			local output = ""
+			local bnr = vim.fn.bufnr(name)
+			if bnr > 0 and vim.api.nvim_buf_is_valid(bnr) then
+				local lines = vim.api.nvim_buf_get_lines(bnr, 0, -1, false)
+				output = table.concat(lines, "\n")
+			end
 
-		local locations = parser.parse_locations(output)
-		local exunit = require("exunit")
-		parser.populate_loclist(locations, exunit.config)
-		ui.place_signs(locations, exunit.config)
+			local locations = parser.parse_locations(output)
+			exunit = exunit or require("exunit")
+			parser.populate_loclist(locations, exunit.config)
+			ui.place_signs(locations, exunit.config)
 
-		M.last_status = {
-			code = exit_code,
-			cmd = cmd,
-			id = id,
-			output = output,
-			locations = locations,
-		}
-		if exit_code == 0 then
-			ui.notify_success(label, exunit.config)
-		else
-			ui.notify_failure(label, exunit.config)
+			M.last_status = {
+				code = exit_code,
+				cmd = cmd,
+				id = id,
+				output = output,
+				locations = locations,
+			}
+			if exit_code == 0 then
+				ui.notify_success(label, exunit.config)
+			else
+				ui.notify_failure(label, exunit.config)
+			end
 		end
 	end
 
