@@ -1,10 +1,13 @@
 local ui = require("exunit.ui")
+local config = require("exunit.config")
 
 describe("ui", function()
 	before_each(function()
 		package.loaded["exunit.ui"] = nil
 		package.loaded["exunit.runner"] = nil
+		package.loaded["exunit.config"] = nil
 		ui = require("exunit.ui")
+		config = require("exunit.config")
 	end)
 
 	describe("statusline", function()
@@ -13,7 +16,7 @@ describe("ui", function()
 				running = false,
 				exit_code = nil,
 			}
-			local result = ui.statusline(status)
+			local result = ui.statusline(status, config.defaults)
 			assert.equals("", result)
 		end)
 
@@ -22,8 +25,8 @@ describe("ui", function()
 				running = false,
 				exit_code = 0,
 			}
-			local result = ui.statusline(status)
-			assert.equals("[ExUnit ✅ ]", result)
+			local result = ui.statusline(status, config.defaults)
+			assert.equals("[ExUnit " .. config.defaults.success_icon .. " ]", result)
 		end)
 
 		it("should return error icon with exit code when failed", function()
@@ -31,15 +34,15 @@ describe("ui", function()
 				running = false,
 				exit_code = 1,
 			}
-			local result = ui.statusline(status)
-			assert.equals("[ExUnit ❌ exit:1]", result)
+			local result = ui.statusline(status, config.defaults)
+			assert.equals("[ExUnit " .. config.defaults.failure_icon .. " exit:1]", result)
 		end)
 
 		it("should return running icon when job is running", function()
 			local status = {
 				running = true,
 			}
-			local result = ui.statusline(status)
+			local result = ui.statusline(status, config.defaults)
 			assert.is_true(result:match("%[ExUnit .+%]") ~= nil)
 		end)
 	end)

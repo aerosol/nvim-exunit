@@ -588,6 +588,7 @@ test/nonexistent.exs:10
 	describe("place_signs", function()
 		it("should define ExUnitError sign", function()
 			local ui = require("exunit.ui")
+			local config = require("exunit.config")
 			local old_fn = vim.fn
 			local sign_defined = false
 			local sign_name = nil
@@ -612,7 +613,7 @@ test/nonexistent.exs:10
 				sign_unplace = function() end,
 			}, { __index = old_fn })
 
-			ui.place_signs({ { file = "test/foo.exs", line = 5 } })
+			ui.place_signs({ { file = "test/foo.exs", line = 5 } }, config.defaults)
 			vim.fn = old_fn
 
 			assert.is_true(sign_defined)
@@ -621,6 +622,7 @@ test/nonexistent.exs:10
 
 		it("should place signs for all locations", function()
 			local ui = require("exunit.ui")
+			local config = require("exunit.config")
 			local old_fn = vim.fn
 			local placed_signs = {}
 
@@ -652,7 +654,7 @@ test/nonexistent.exs:10
 				{ file = "test/foo.exs", line = 10 },
 				{ file = "lib/bar.ex", line = 15 },
 			}
-			ui.place_signs(locations)
+			ui.place_signs(locations, config.defaults)
 			vim.fn = old_fn
 
 			assert.equals(3, #placed_signs)
@@ -665,6 +667,7 @@ test/nonexistent.exs:10
 
 		it("should clear previous signs before placing new ones", function()
 			local ui = require("exunit.ui")
+			local config = require("exunit.config")
 			local old_fn = vim.fn
 			local clear_called = false
 
@@ -687,7 +690,7 @@ test/nonexistent.exs:10
 				end,
 			}, { __index = old_fn })
 
-			ui.place_signs({ { file = "test/foo.exs", line = 5 } })
+			ui.place_signs({ { file = "test/foo.exs", line = 5 } }, config.defaults)
 			vim.fn = old_fn
 
 			assert.is_true(clear_called)
@@ -695,6 +698,7 @@ test/nonexistent.exs:10
 
 		it("should handle empty locations", function()
 			local ui = require("exunit.ui")
+			local config = require("exunit.config")
 			local old_fn = vim.fn
 			local sign_placed = false
 
@@ -707,7 +711,7 @@ test/nonexistent.exs:10
 				sign_unplace = function() end,
 			}, { __index = old_fn })
 
-			ui.place_signs({})
+			ui.place_signs({}, config.defaults)
 			vim.fn = old_fn
 
 			assert.is_false(sign_placed)
@@ -715,6 +719,7 @@ test/nonexistent.exs:10
 
 		it("should track placed sign IDs", function()
 			local ui = require("exunit.ui")
+			local config = require("exunit.config")
 			local old_fn = vim.fn
 
 			vim.fn = setmetatable({
@@ -740,7 +745,7 @@ test/nonexistent.exs:10
 			ui.place_signs({
 				{ file = "test/foo.exs", line = 5 },
 				{ file = "test/bar.exs", line = 10 },
-			})
+			}, config.defaults)
 			vim.fn = old_fn
 
 			assert.equals(2, #ui.placed_signs)

@@ -43,7 +43,11 @@ https://github.com/user-attachments/assets/beabc682-c060-4605-8374-b6cc1508a110
 				-- available options: 
 				--  "focus" - automatically switch to location list window
 				--  "manual" - populates the list but doesn't invoke anything
-				location_list_mode = "open_no_focus" 			
+				location_list_mode = "open_no_focus",
+				-- customize icons
+				running_icons = { "🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘" },
+				success_icon = "✅",
+				failure_icon = "❌",
 			})
 		end,
 	}

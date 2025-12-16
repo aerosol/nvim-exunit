@@ -43,7 +43,7 @@ end
 
 function M.statusline()
 	local status = runner.status()
-	return ui.statusline(status)
+	return ui.statusline(status, M.config)
 end
 
 return M

@@ -75,7 +75,7 @@ function M.run(args)
 		local locations = parser.parse_locations(output)
 		local exunit = require("exunit")
 		parser.populate_loclist(locations, exunit.config)
-		ui.place_signs(locations)
+		ui.place_signs(locations, exunit.config)
 
 		M.last_status = {
 			code = exit_code,
@@ -85,9 +85,9 @@ function M.run(args)
 			locations = locations,
 		}
 		if exit_code == 0 then
-			ui.notify_success(label)
+			ui.notify_success(label, exunit.config)
 		else
-			ui.notify_failure(label)
+			ui.notify_failure(label, exunit.config)
 		end
 	end
 

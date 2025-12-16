@@ -1,17 +1,20 @@
-local RUNNING_ICONS = { "⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷" }
 local running_index = 1
 
 local M = {}
 
-function M.statusline(status)
+function M.statusline(status, config)
+	config = config or require("exunit.config").defaults
+	local running_icons = config.running_icons
+	local failure_icon = config.failure_icon
+	local success_icon = config.success_icon
 	if status.running then
-		running_index = running_index % #RUNNING_ICONS + 1
-		return "[ExUnit " .. RUNNING_ICONS[running_index] .. "]"
+		running_index = running_index % #running_icons + 1
+		return "[ExUnit " .. running_icons[running_index] .. "]"
 	elseif status.exit_code ~= nil then
 		if status.exit_code == 0 then
-			return "[ExUnit ✅ ]"
+			return "[ExUnit " .. success_icon .. " ]"
 		else
-			return "[ExUnit ❌ exit:" .. status.exit_code .. "]"
+			return "[ExUnit " .. failure_icon .. " exit:" .. status.exit_code .. "]"
 		end
 	else
 		return ""
@@ -48,12 +51,14 @@ function M.notify_running(label)
 	vim.notify(label, vim.log.levels.INFO)
 end
 
-function M.notify_success(label)
-	vim.notify("✅ " .. label, vim.log.levels.INFO)
+function M.notify_success(label, config)
+	config = config or require("exunit.config").defaults
+	vim.notify(config.success_icon .. " " .. label, vim.log.levels.INFO)
 end
 
-function M.notify_failure(label)
-	vim.notify("❌ " .. label, vim.log.levels.ERROR)
+function M.notify_failure(label, config)
+	config = config or require("exunit.config").defaults
+	vim.notify(config.failure_icon .. " " .. label, vim.log.levels.ERROR)
 end
 
 function M.notify_warning(message)
@@ -128,7 +133,8 @@ function M.clear_signs()
 	pending_signs = {}
 end
 
-function M.place_signs(locations)
+function M.place_signs(locations, config)
+	config = config or require("exunit.config").defaults
 	M.clear_signs()
 
 	if not locations or #locations == 0 then
@@ -136,7 +142,7 @@ function M.place_signs(locations)
 	end
 
 	vim.fn.sign_define("ExUnitError", {
-		text = "❌",
+		text = config.failure_icon,
 		texthl = "DiagnosticError",
 		numhl = "DiagnosticError",
 	})
